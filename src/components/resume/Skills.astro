@@ -1,0 +1,29 @@
+---
+import Section from "../layout/Section.astro";
+import type { InferEntrySchema } from "astro:content";
+
+type Props = {
+  categories: InferEntrySchema<"skills">["categories"];
+};
+
+const { categories } = Astro.props;
+---
+
+<Section title="Skills">
+  <div class="space-y-5">
+    {categories.map((cat) => (
+      <div class="flex flex-col gap-2 sm:flex-row sm:gap-4">
+        <h3 class="w-40 shrink-0 text-sm font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 pt-0.5">
+          {cat.name}
+        </h3>
+        <div class="flex flex-wrap gap-1.5">
+          {cat.items.map((item) => (
+            <span class="rounded-full bg-slate-100 dark:bg-slate-800 px-3 py-1 text-sm text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+              {item.name}
+            </span>
+          ))}
+        </div>
+      </div>
+    ))}
+  </div>
+</Section>

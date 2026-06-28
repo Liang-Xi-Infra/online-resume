@@ -1,0 +1,39 @@
+categories:
+  - name: "Languages"
+    items:
+      - name: "C/C++"
+      - name: "Python"
+      - name: "Bash"
+
+  - name: "Frameworks"
+    items:
+      - name: "vLLM"
+      - name: "PyTorch"
+      - name: "torch.compile"
+      - name: "MLIR / XLA"
+      - name: "Triton"
+
+  - name: "Models"
+    items:
+      - name: "Llama 2/3/4"
+      - name: "Qwen 2/3"
+      - name: "DeepSeek-V2/V3"
+
+  - name: "Operator & Kernel"
+    items:
+      - name: "CUDA / Custom ISA"
+      - name: "LLM Ops, Communication Ops"
+      - name: "Profiler"
+
+  - name: "Inference & Deployment"
+    items:
+      - name: "PagedAttention / Continuous Batching"
+      - name: "Prefix Caching / Chunked Prefill"
+      - name: "Speculative Decoding"
+      - name: "Quantization"
+      - name: "TP / DP / CP / DCP Parallelism"
+
+  - name: "Engineering"
+    items:
+      - name: "Software Project"
+      - name: "Agent Coding"

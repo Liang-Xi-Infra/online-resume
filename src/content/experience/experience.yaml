@@ -1,0 +1,8 @@
+- company: "EVAS"
+  role: "LLM Inference"
+  period: "2025/05 ~ 2026/07"
+  highlights:
+    - "Custom vLLM-Plugin 0-1 Development, including v0/v1 double version, for custom AI Chip"
+    - "LLM Deployment and Optimization, including Llama, Qwen, DeepSeek, etc."
+    - "Custom Operator Library: Optimization and Iteration."
+    - "Custom vLLMCompilation System: torch.compile() + Custom Graph."

@@ -1,0 +1,20 @@
+---
+interface Props {
+  title: string;
+  id?: string;
+  className?: string;
+}
+
+const { title, id, className = "" } = Astro.props;
+const sectionId = id ?? title.toLowerCase().replace(/\s+/g, "-");
+---
+
+<section
+  id={sectionId}
+  class:list={["mb-12 animate-fade-in", className]}
+>
+  <h2 class="mb-6 text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 border-b border-slate-200 dark:border-slate-700 pb-2">
+    {title}
+  </h2>
+  <slot />
+</section>

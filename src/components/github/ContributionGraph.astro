@@ -1,0 +1,149 @@
+---
+// ContributionGraph.astro — GitHub contribution heatmap island
+// Fetches data at build time (SSG) if PUBLIC_GITHUB_TOKEN is set.
+// Falls back to a static profile link if no token.
+
+import { fetchGitHubStats } from "../../lib/github-api";
+import type { GitHubStats } from "../../lib/github-api";
+
+const username = "Liang-Xi-Infra";
+const token = import.meta.env.PUBLIC_GITHUB_TOKEN;
+const stats = token ? await fetchGitHubStats(username, token) : null;
+
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+---
+
+<div
+  id="github-heatmap"
+  data-stats={stats ? JSON.stringify(stats) : ""}
+  data-username={username}
+  class:list={["rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 p-5", className ?? ""]}
+>
+  <div class="mb-3 flex items-center justify-between">
+    <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+      GitHub Contributions
+    </h3>
+    <a
+      href={`https://github.com/${username}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      class="text-xs text-brand-600 dark:text-brand-400 hover:underline"
+    >
+      @{username} →
+    </a>
+  </div>
+
+  {stats ? (
+    <>
+      <p class="mb-3 text-sm text-slate-600 dark:text-slate-400">
+        <span class="font-semibold text-slate-900 dark:text-slate-100">{stats.totalContributions}</span>
+        {" "}contributions in the last year
+      </p>
+      <canvas id="heatmap-canvas" class="w-full" height="112"></canvas>
+      <p class="mt-2 text-right text-[10px] text-slate-400 dark:text-slate-500">
+        Less
+        <span class="mx-1 inline-block h-2.5 w-2.5 rounded-sm bg-[#ebedf0] dark:brightness-75"></span>
+        <span class="mx-0.5 inline-block h-2.5 w-2.5 rounded-sm bg-[#9be9a8]"></span>
+        <span class="mx-0.5 inline-block h-2.5 w-2.5 rounded-sm bg-[#40c463]"></span>
+        <span class="mx-0.5 inline-block h-2.5 w-2.5 rounded-sm bg-[#30a14e]"></span>
+        <span class="ml-1 inline-block h-2.5 w-2.5 rounded-sm bg-[#216e39]"></span>
+        {" "}More
+      </p>
+    </>
+  ) : (
+    <div class="flex items-center justify-center py-8">
+      <a
+        href={`https://github.com/${username}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="text-sm text-slate-400 dark:text-slate-500 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
+      >
+        View full activity on GitHub →
+      </a>
+    </div>
+  )}
+</div>
+
+{stats && (
+  <script>
+    import type { GitHubStats } from "../../lib/github-api";
+
+    const stats: GitHubStats = JSON.parse(
+      document.getElementById("github-heatmap")!.getAttribute("data-stats") || "{}"
+    );
+
+    const canvas = document.getElementById("heatmap-canvas") as HTMLCanvasElement;
+    if (!canvas || !stats.weeks?.length) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const CELL_SIZE = 10;
+    const CELL_GAP = 2;
+    const TOTAL = CELL_SIZE + CELL_GAP;
+    const LABEL_WIDTH = 28;
+    const HEADER_HEIGHT = 16;
+
+    const levels: Record<number, string> = {
+      0: "#ebedf0",
+      1: "#9be9a8",
+      2: "#40c463",
+      3: "#30a14e",
+      4: "#216e39",
+    };
+
+    const dayLabels = ["Mon", "", "Wed", "", "Fri", "", ""];
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    const weeks = stats.weeks;
+    const totalWeeks = weeks.length;
+    const canvasWidth = LABEL_WIDTH + totalWeeks * TOTAL + 8;
+
+    canvas.width = canvasWidth;
+    canvas.style.width = "100%";
+
+    // Draw day labels
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "9px Inter, system-ui, sans-serif";
+    ctx.textBaseline = "middle";
+    dayLabels.forEach((label, i) => {
+      if (label) {
+        ctx.fillText(label, 0, HEADER_HEIGHT + i * TOTAL + CELL_SIZE / 2);
+      }
+    });
+
+    // Draw months
+    let lastMonth = -1;
+    weeks.forEach((week, wi) => {
+      const firstDay = new Date(week.days[0]?.date);
+      const month = firstDay.getMonth();
+      if (!isNaN(month) && month !== lastMonth) {
+        ctx.fillText(monthNames[month], LABEL_WIDTH + wi * TOTAL, 10);
+        lastMonth = month;
+      }
+    });
+
+    // Draw cells
+    weeks.forEach((week, wi) => {
+      week.days.forEach((day, di) => {
+        const x = LABEL_WIDTH + wi * TOTAL;
+        const y = HEADER_HEIGHT + di * TOTAL;
+        const level = day.level ?? 0;
+
+        ctx.fillStyle = levels[level] || levels[0];
+        ctx.beginPath();
+        ctx.roundRect(x, y, CELL_SIZE, CELL_SIZE, 2);
+        ctx.fill();
+
+        // Tooltip data
+        if (day.count > 0) {
+          (canvas as any).title = `${day.date}: ${day.count} contributions`;
+        }
+      });
+    });
+  </script>
+)}

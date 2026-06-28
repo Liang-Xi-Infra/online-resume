@@ -1,0 +1,59 @@
+- name: "Custom vLLM Inference Plugin"
+  description: "vLLM-Plugin for custom AI Chips."
+  period: "2025/05 ~ 2026/07"
+  tech:
+    - "vLLM / vLLM-Plugin"
+    - "PyTorch / PyTorch-Plugin"
+    - "LLM Inference"
+    - "C/C++"
+    - "Python"
+  highlights:
+    - "vLLM-Plugin: v0 & v1, CPU & AI-Chips 0→1"
+    - "PagedAttention, Continuous Batching, Prefix Caching, Chunked Prefill, Speculative Decoding, Async Scheduling, Parallel Paradigm, etc."
+    - "Agent-driven Rebase Workflow"
+
+- name: "LLM Deployment & Optimization"
+  description: "Deploy LLMs on AI-Chips and E2E latency optimization."
+  period: "2025/05 ~ 2026/07"
+  tech:
+    - "Qwen"
+    - "Llama"
+    - "DeepSeek"
+    - "vLLM"
+    - "Quantization"
+    - "Operator"
+  highlights:
+    - "Scheduling Methods"
+    - "MemPool, CpuNpuBuffer"
+    - "FusedOp, Auto-Split, Multi-level Overlap"
+    - "Quantization"
+    - "DP, TP, CP, DCP"
+
+- name: "High-Perf Operator Library"
+  description: "Based on Custom-ISA, including LLM and Comm Ops."
+  period: "2025/07 ~ 2026/07"
+  tech:
+    - "Custom ISA"
+    - "LLM & Comm Ops"
+    - "PyBind11 / TVM_FFI"
+    - "Roofline"
+    - "Profiler"
+    - "MFU"
+  highlights:
+    - "Binding Iteration"
+    - "Structure Iteration"
+    - "LLM & Comm Ops"
+
+- name: "Custom Graph Compilation System"
+  description: "Based on torch.compile(), Custom XLA and Custom Graph."
+  period: "2026/02 ~ 2026/06"
+  tech:
+    - "torch.compile()"
+    - "Custom XLA"
+    - "Custom Graph"
+    - "MLIR"
+  highlights:
+    - "Multi-Mode Capture"
+    - "Multi Backends"
+    - "Optimization: Guard, Caching, MemPool, etc."
+    - "custom_op"

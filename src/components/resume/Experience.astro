@@ -1,0 +1,48 @@
+---
+import Section from "../layout/Section.astro";
+import type { InferEntrySchema } from "astro:content";
+
+type Props = {
+  items: InferEntrySchema<"experience">;
+};
+
+const { items } = Astro.props;
+---
+
+<Section title="Experience">
+  <div class="space-y-8">
+    {items.map((exp) => (
+      <div class="group relative border-l-2 border-slate-200 dark:border-slate-700 pl-6 pb-2 hover:border-brand-400 dark:hover:border-brand-500 transition-colors">
+        <div class="absolute -left-[5px] top-1.5 h-2 w-2 rounded-full bg-brand-500 ring-4 ring-white dark:ring-slate-900" />
+
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-1">
+          <div>
+            <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">
+              {exp.role}
+            </h3>
+            {exp.url ? (
+              <a href={exp.url} target="_blank" rel="noopener noreferrer" class="text-brand-600 dark:text-brand-400 hover:underline">
+                {exp.company}
+              </a>
+            ) : (
+              <span class="text-brand-600 dark:text-brand-400">{exp.company}</span>
+            )}
+          </div>
+          <span class="text-sm text-slate-400 dark:text-slate-500 font-mono whitespace-nowrap">
+            {exp.period}
+          </span>
+        </div>
+
+        <ul class="mt-2 space-y-1.5 text-sm text-slate-600 dark:text-slate-400">
+          {exp.highlights.map((h, i) => (
+            <li key={i} class="flex gap-2">
+              <span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-slate-400 dark:bg-slate-500" />
+              <span>{h}</span>
+            </li>
+          ))}
+        </ul>
+
+      </div>
+    ))}
+  </div>
+</Section>

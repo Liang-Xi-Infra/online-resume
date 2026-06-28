@@ -1,0 +1,219 @@
+---
+// Terminal.astro — xterm.js island component
+// Resume data is fetched at build time, serialized to JSON, and injected into the DOM
+// for the client-side xterm.js script to consume.
+
+import { getCollection } from "astro:content";
+
+const [basicsEntry] = await getCollection("basics");
+const [experienceEntry] = await getCollection("experience");
+const [skillsEntry] = await getCollection("skills");
+const [educationEntry] = await getCollection("education");
+const [projectsEntry] = await getCollection("projects");
+
+const resumeData = {
+  basics: basicsEntry?.data ?? {},
+  experience: experienceEntry?.data ?? [],
+  skills: skillsEntry?.data ?? { categories: [] },
+  education: educationEntry?.data ?? [],
+  projects: projectsEntry?.data ?? [],
+};
+
+export interface Props {
+  class?: string;
+  fullscreen?: boolean;
+}
+
+const { fullscreen = false, class: className } = Astro.props;
+---
+
+<div
+  id="terminal-container"
+  data-resume={JSON.stringify(resumeData)}
+  class:list={[
+    "rounded-lg overflow-hidden border border-slate-700 shadow-2xl",
+    fullscreen ? "h-screen" : "h-[500px]",
+    className ?? "",
+  ]}
+>
+  <div id="terminal" class="h-full w-full"></div>
+</div>
+
+<script>
+  import { Terminal as XTerm } from "@xterm/xterm";
+  import { FitAddon } from "@xterm/addon-fit";
+  import { executeCommand, getPrompt, getWelcome } from "../../lib/commands";
+  import type { ResumeData } from "../../lib/commands";
+
+  const resumeData: ResumeData = JSON.parse(
+    document.getElementById("terminal-container")!.getAttribute("data-resume") || "{}"
+  );
+
+  const term = new XTerm({
+    cursorBlink: true,
+    cursorStyle: "bar",
+    fontSize: 14,
+    fontFamily: '"JetBrains Mono", "Fira Code", monospace',
+    theme: {
+      background: "#1a1b26",
+      foreground: "#a9b1d6",
+      cursor: "#c0caf5",
+      black: "#15161e",
+      red: "#f7768e",
+      green: "#9ece6a",
+      yellow: "#e0af68",
+      blue: "#7aa2f7",
+      magenta: "#bb9af7",
+      cyan: "#7dcfff",
+      white: "#a9b1d6",
+      brightBlack: "#414868",
+      brightRed: "#f7768e",
+      brightGreen: "#9ece6a",
+      brightYellow: "#e0af68",
+      brightBlue: "#7aa2f7",
+      brightMagenta: "#bb9af7",
+      brightCyan: "#7dcfff",
+      brightWhite: "#c0caf5",
+    },
+    allowProposedApi: true,
+    scrollback: 5000,
+  });
+
+  const fitAddon = new FitAddon();
+  term.loadAddon(fitAddon);
+
+  const containerEl = document.getElementById("terminal")!;
+  term.open(containerEl);
+  fitAddon.fit();
+
+  // ── Terminal State ──────────────────────────────────────────
+
+  let currentLine = "";
+  let cursorPos = 0;
+  let commandHistory: string[] = [];
+  let historyIndex = -1;
+
+  function writePrompt() {
+    term.write(getPrompt());
+  }
+
+  function handleCommand(input: string) {
+    commandHistory.push(input);
+    historyIndex = commandHistory.length;
+    term.writeln("");
+
+    const result = executeCommand(input, resumeData);
+    if (result === "__CLEAR__") {
+      term.clear();
+      return;
+    }
+    if (result === "__EXIT__") {
+      term.writeln("\x1b[33mReturning to main resume page...\x1b[0m");
+      setTimeout(() => { window.location.href = "/"; }, 400);
+      return;
+    }
+    if (result) {
+      term.writeln(result);
+    }
+  }
+
+  // Initial welcome
+  term.writeln(getWelcome(resumeData));
+  writePrompt();
+
+  // ── Input Handling ──────────────────────────────────────────
+
+  term.onData((data: string) => {
+    const code = data.charCodeAt(0);
+
+    // Enter
+    if (code === 13) {
+      term.write("\r\n");
+      handleCommand(currentLine);
+      currentLine = "";
+      cursorPos = 0;
+      writePrompt();
+      return;
+    }
+
+    // Backspace
+    if (code === 127) {
+      if (cursorPos > 0) {
+        currentLine = currentLine.slice(0, -1);
+        cursorPos--;
+        term.write("\b \b");
+      }
+      return;
+    }
+
+    // Ctrl+L → clear
+    if (code === 12) {
+      term.clear();
+      writePrompt();
+      term.write(currentLine);
+      return;
+    }
+
+    // Ctrl+C → new line
+    if (code === 3) {
+      term.write("^C\r\n");
+      currentLine = "";
+      cursorPos = 0;
+      writePrompt();
+      return;
+    }
+
+    // Ctrl+U → kill line
+    if (code === 21) {
+      while (cursorPos > 0) {
+        term.write("\b \b");
+        cursorPos--;
+      }
+      currentLine = "";
+      return;
+    }
+
+    // Up arrow → history back
+    if (data === "\x1b[A") {
+      if (historyIndex > 0) {
+        while (cursorPos > 0) { term.write("\b \b"); cursorPos--; }
+        historyIndex--;
+        currentLine = commandHistory[historyIndex];
+        cursorPos = currentLine.length;
+        term.write(currentLine);
+      }
+      return;
+    }
+
+    // Down arrow → history forward
+    if (data === "\x1b[B") {
+      while (cursorPos > 0) { term.write("\b \b"); cursorPos--; }
+      if (historyIndex < commandHistory.length - 1) {
+        historyIndex++;
+        currentLine = commandHistory[historyIndex];
+      } else {
+        historyIndex = commandHistory.length;
+        currentLine = "";
+      }
+      cursorPos = currentLine.length;
+      term.write(currentLine);
+      return;
+    }
+
+    // Printable ASCII
+    if (data.length === 1 && code >= 32 && code < 127) {
+      currentLine += data;
+      cursorPos++;
+      term.write(data);
+    }
+  });
+
+  // Resize handling
+  const ro = new ResizeObserver(() => fitAddon.fit());
+  ro.observe(containerEl);
+
+  window.addEventListener("beforeunload", () => {
+    ro.disconnect();
+    term.dispose();
+  });
+</script>
