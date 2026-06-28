@@ -3,7 +3,7 @@ import type { InferEntrySchema } from "astro:content";
 
 type Props = InferEntrySchema<"basics">;
 
-const { name, title, tagline, location, email, github, social = [] } = Astro.props;
+const { name, title, tagline, location, email, social = [] } = Astro.props;
 
 const socialLinks = [
   ...social,

@@ -100,10 +100,6 @@ function section(title: string): string {
   return `\n${c(BOLD + title, "cyan")}\n${"─".repeat(title.length)}\n`;
 }
 
-function bullet(items: string[]): string {
-  return items.map((i) => `  ${c("●", "blue")} ${i}`).join("\n");
-}
-
 function whoami(data: ResumeData): string {
   const lines: string[] = [];
   lines.push(section("PROFILE"));
