@@ -3,7 +3,7 @@ import tailwind from "@astrojs/tailwind";
 
 export default defineConfig({
   site: "https://liang-xi-infra.github.io",
-  base: "/Resume/",
+  base: "/online-resume/",
   output: "static",
   integrations: [tailwind()],
   markdown: {
