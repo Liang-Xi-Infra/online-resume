@@ -5,6 +5,8 @@ type Props = InferEntrySchema<"basics">;
 
 const { name, title, tagline, location, email, social = [] } = Astro.props;
 
+const imagePath = `${import.meta.env.BASE_URL}me.jpg`;
+
 const socialLinks = [
   ...social,
 ];
@@ -27,7 +29,7 @@ const socialLinks = [
 
     <!-- Right: photo -->
     <img
-      src="/online-resume/me.jpg"
+      src={imagePath}
       alt={name}
       class="h-auto w-auto max-h-28 shrink-0 rounded object-contain"
     />
